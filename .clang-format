@@ -1,0 +1,23 @@
+# apply CTRL + K, CTRL + D
+
+Language: Cpp
+
+# BasedOnStyle: Google
+
+BasedOnStyle: Microsoft  
+IndentWidth: '4'
+# Default in MS is 4
+
+# UseTab: Always
+UseTab: Never
+TabWidth: '4'
+#BreakBeforeBraces: Attach
+BreakBeforeBraces: Allman
+
+ColumnLimit: '140'
+AccessModifierOffset: '-4'
+SortIncludes: false
+AllowShortBlocksOnASingleLine: false
+AlignAfterOpenBracket: DontAlign
+AllowShortFunctionsOnASingleLine: Inline
+PointerAlignment: Left
