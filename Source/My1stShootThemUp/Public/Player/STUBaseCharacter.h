@@ -51,10 +51,10 @@ protected:
     bool Running{false};
     bool IsWalkForward{false};
 
+    virtual void OnDeath();
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-
 
 public:	
 	// Called every frame
@@ -78,7 +78,6 @@ private:
     void RunStart();
     void RunEnd();
 
-    void OnDeath();
     void OnHealthChanged(float Health, float HealthDelta);
         
 	UFUNCTION()

@@ -274,6 +274,19 @@ bool USTUWeaponComponent::GetAmmoData(FAmmoData& AmmoData) const
     return false;    
 }
 
+bool USTUWeaponComponent::GetChosenAmmoData(TSubclassOf<ASTUBaseWeapon> WeaponType, FAmmoData& AmmoData) const
+{
+    for (auto& Weapon : this->Weapons)
+    {
+        if (Weapon && Weapon->IsA(WeaponType))
+        {
+            AmmoData = Weapon->GetAmmoData();
+            return true;   
+        }
+    }
+    return false;    
+}
+
 bool USTUWeaponComponent::TryToAddAmmo(TSubclassOf<ASTUBaseWeapon> WeaponType, int32 ClipsAmount)
 {
     for (const auto Weapon : this->Weapons)

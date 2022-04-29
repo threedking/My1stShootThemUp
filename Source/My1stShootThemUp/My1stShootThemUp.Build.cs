@@ -33,6 +33,8 @@ public class My1stShootThemUp : ModuleRules
 			"My1stShootThemUp/Public/AI",
 			"My1stShootThemUp/Public/AI/Tasks",
 			"My1stShootThemUp/Public/AI/Services",			
+			"My1stShootThemUp/Public/AI/EQS",
+			"My1stShootThemUp/Public/AI/Decorators"
 		} );
 
 		// Uncomment if you are using Slate UI
