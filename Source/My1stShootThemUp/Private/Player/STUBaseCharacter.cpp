@@ -192,3 +192,10 @@ void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
     this->TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
  }
 
+void ASTUBaseCharacter::SetPlayerColor(const FLinearColor& Color)
+{
+    const auto MaterialInst = this->GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
+    if(!MaterialInst) return;
+
+    MaterialInst->SetVectorParameterValue(this->MaterialColorName, Color);
+}
