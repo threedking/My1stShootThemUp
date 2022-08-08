@@ -6,11 +6,13 @@
 #include "GameFramework/Character.h"
 #include "STUBaseCharacter.generated.h"
 
+
 class UCameraComponent;
 class USpringArmComponent;
 class USTUHealthComponent;
 class UTextRenderComponent;
 class USTUWeaponComponent;
+
 
 UCLASS()
 class MY1STSHOOTTHEMUP_API ASTUBaseCharacter : public ACharacter
@@ -21,12 +23,20 @@ public:
 	// Sets default values for this character's properties
 	ASTUBaseCharacter(const FObjectInitializer& ObjInit);
 
+    // Called to bind functionality to input
+    //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    virtual bool GetRunning() const;
+
 protected:
+    /*
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-    USpringArmComponent* SpringArmComponent; 
+    USpringArmComponent* SpringArmComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-    UCameraComponent* CameraComponent; 
+    UCameraComponent* CameraComponent;
+    */
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
     USTUHealthComponent* HealthComponent;
@@ -50,9 +60,6 @@ protected:
     FName MaterialColorName = "Paint Color";
         
 
-    //UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Variables")
-    bool Running{false};
-    bool IsWalkForward{false};
 
     virtual void OnDeath();
 
@@ -63,11 +70,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    bool GetRunning() const;
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     float GetMovementDirection() const;
@@ -75,18 +78,22 @@ public:
     void SetPlayerColor(const FLinearColor& Color);
 
 private:
-    void MoveForaward(float Amount);
-    void MoveRight(float Amount);
-
-    void LookUp(float Amount);
-    void TurnAround(float Amount);
-    void RunStart();
-    void RunEnd();
 
     void OnHealthChanged(float Health, float HealthDelta);
         
 	UFUNCTION()
     void OnGroundLanded(const FHitResult& Hit);
 
-    void SpawnWeapon();
+    /*
+    bool Running{false};
+    bool IsWalkForward{false};
+
+    void LookUp(float Amount);
+    void TurnAround(float Amount);
+    void MoveForaward(float Amount);
+    void MoveRight(float Amount);
+    void RunStart();
+    void RunEnd();
+    */
+
 };

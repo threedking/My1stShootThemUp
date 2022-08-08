@@ -77,7 +77,7 @@ void ASTURifleWeapon::MakeShot()
                 ResultDamage = Damage;
             }
 
-            DamagedActor->TakeDamage(ResultDamage, FDamageEvent{}, this->GetPlayerController(), this);
+            DamagedActor->TakeDamage(ResultDamage, FDamageEvent{}, this->GetController(), this);
         }
         this->WeaponFXComponent->PlayImpactFX(HitResult);
     }
@@ -132,4 +132,10 @@ void ASTURifleWeapon::SpawnTraceFX(const FVector& TraceStart, const FVector& Tra
     {
         TraceFXComponent->SetNiagaraVariableVec3(this->TraceTargetName, TraceEnd);
     }
+}
+
+AController* ASTURifleWeapon::GetController() const
+{
+    const auto Pawn = Cast<APawn>(this->GetOwner());
+    return Pawn ? Pawn->GetController() : nullptr;
 }
