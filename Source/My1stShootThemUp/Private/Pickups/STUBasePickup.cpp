@@ -38,7 +38,7 @@ void ASTUBasePickup::Tick(float DeltaTime)
 
 void ASTUBasePickup::NotifyActorBeginOverlap(AActor* OtherActor) {
     Super::NotifyActorBeginOverlap(OtherActor);
-    
+
     const auto Pawn = Cast<APawn>(OtherActor);
     if (this->GivePickupTo(Pawn))
     {

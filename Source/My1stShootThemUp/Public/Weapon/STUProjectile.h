@@ -20,9 +20,17 @@ public:
 	ASTUProjectile();
 
 	void SetShotDirection(const FVector& Direction);
+    void SetInitialSpeed(float InitialSpeed);
+
+	static float GetInitialSpeed();
+    float GetStartTime() const;		
+    FVector GetVelocityByMovementComponent() const;
+    float GetCollisionSphereRadius() const;    
+	virtual FVector GetVelocity() const override;
 
 protected:
 	virtual void BeginPlay() override;
+    virtual void Tick(float DeltaSeconds) override;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Weapon")
     USphereComponent* CollisionComponent;
@@ -40,11 +48,17 @@ protected:
     bool DoFullDamage = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-    float LifeSeconds = 5.0;
+    float LifeSeconds = 5.0f;
+
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    static const float InitialSpeed;
     
     UPROPERTY(VisibleAnywhere, Category = "VFX")
     USTUWeaponFXComponent* WeaponFXComponent;
 
+	float StartTime{0.0f};
+
+    virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 private:	
 	FVector ShotDirection;

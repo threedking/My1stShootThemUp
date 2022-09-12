@@ -16,7 +16,10 @@ public class My1stShootThemUp : ModuleRules
 			"Niagara", 
 			"PhysicsCore",
 			"GameplayTasks",
-			"NavigationSystem"
+			"NavigationSystem",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
@@ -34,7 +37,9 @@ public class My1stShootThemUp : ModuleRules
 			"My1stShootThemUp/Public/AI/Tasks",
 			"My1stShootThemUp/Public/AI/Services",			
 			"My1stShootThemUp/Public/AI/EQS",
-			"My1stShootThemUp/Public/AI/Decorators"
+			"My1stShootThemUp/Public/AI/Decorators",
+			"My1stShootThemUp/Public/GAS",
+			"My1stShootThemUp/Public/Turret"
 		} );
 
 		// Uncomment if you are using Slate UI

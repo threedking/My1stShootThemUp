@@ -8,6 +8,8 @@
 #include "Components/STUWeaponComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Weapon/STULauncherWeapon.h"
+#include "DrawDebugHelpers.h"
 
 
 ASTUPlayerCharacter::ASTUPlayerCharacter(const FObjectInitializer& ObjInit): Super(ObjInit)
@@ -61,6 +63,7 @@ void ASTUPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     PlayerInputComponent->BindAction("Fire", IE_Released, this->WeaponComponent, &USTUWeaponComponent::StopFire);
     PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::NextWeapon);
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::Reload);
+    PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASTUPlayerCharacter::Dash);
 }
 
 bool ASTUPlayerCharacter::GetRunning() const
@@ -149,3 +152,19 @@ void ASTUPlayerCharacter::ChackCameraOverlap()
 
 }
 
+void ASTUPlayerCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    auto Weapon = WeaponComponent->GetCurrentWeapon();
+    if(!Weapon) return;
+
+    auto Launcher = Cast<ASTULauncherWeapon>(Weapon);
+    if (Launcher)
+    {
+        for(float i = 0.1f; i <= 2.0f; i+=0.1f)
+        {
+            DrawDebugSphere(this->GetWorld(), Launcher->GetPredictPointByTime(i), 10, 8, FColor::Red);
+        }
+    }        
+}

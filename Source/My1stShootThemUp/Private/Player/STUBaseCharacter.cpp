@@ -9,10 +9,11 @@
 #include "Components/STUWeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Controller.h"
-
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(BaseCharecterLog, All, All);
 
@@ -23,10 +24,6 @@ ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-    
-
-
-
     this->HealthComponent = this->CreateDefaultSubobject<USTUHealthComponent>("HealthComponent");
         // нет SetupAttachment потому что нет представления на сцене
     
@@ -36,6 +33,12 @@ ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
     
     this->WeaponComponent = this->CreateDefaultSubobject<USTUWeaponComponent>("WeaponComponent");
 
+    CollisionComponent = this->CreateDefaultSubobject<USphereComponent>("CollisionComponent");
+    CollisionComponent->InitSphereRadius(70.0f);
+    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+
+    AbilitySystem = this->CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystem");
 }
 
 // Called when the game starts or when spawned
@@ -47,6 +50,7 @@ void ASTUBaseCharacter::BeginPlay()
     //check(this->HealthTextComponent);
     check(this->GetCharacterMovement());
     check(this->GetMesh());
+    check(CollisionComponent);
     //Проверка макросом чек, который сгенерит assrtion, есди компоненты нулевые
     //Работает только в дебаг и дев билдах
 
@@ -60,7 +64,6 @@ void ASTUBaseCharacter::BeginPlay()
 }
 
 
-// Called every frame
 void ASTUBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -152,7 +155,7 @@ void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
     const auto FinalDamage = FMath::GetMappedRangeValueClamped(this->LandedDamageVelocity, this->LandedDamage, FallVelocityZ);
     UE_LOG(BaseCharecterLog, Display, TEXT("FinalDamage  = %f"), FinalDamage);
     this->TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
- }
+}
 
 void ASTUBaseCharacter::SetPlayerColor(const FLinearColor& Color)
 {
@@ -160,4 +163,43 @@ void ASTUBaseCharacter::SetPlayerColor(const FLinearColor& Color)
     if(!MaterialInst) return;
 
     MaterialInst->SetVectorParameterValue(this->MaterialColorName, Color);
+}
+
+void ASTUBaseCharacter::Dash() 
+{
+    if(!GetWorld()) return;
+    
+    FCollisionQueryParams CollisionParams;
+    TArray<AActor*> AllActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASTUBaseCharacter::StaticClass(), AllActors);
+    CollisionParams.AddIgnoredActors(AllActors);
+
+    FVector DestLocation = GetActorLocation() + GetActorForwardVector() * DashDistance;
+    FHitResult HitResult;
+    GetWorld()->LineTraceSingleByChannel(HitResult, GetActorLocation(), DestLocation, ECollisionChannel::ECC_Visibility, CollisionParams);
+
+    if(HitResult.bBlockingHit)
+    {
+        float NewDashDistance = HitResult.Distance - GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+        if(NewDashDistance < DashDistance && NewDashDistance > GetCapsuleComponent()->GetUnscaledCapsuleRadius())
+        {
+            DestLocation = GetActorLocation() + GetActorForwardVector() * NewDashDistance;
+            HitResult.Reset();
+            GetWorld()->LineTraceSingleByChannel(HitResult, GetActorLocation(), DestLocation, ECollisionChannel::ECC_Visibility, CollisionParams);
+        }            
+    }
+
+    if(!HitResult.bBlockingHit)
+    {
+        if(this->TeleportTo(DestLocation, this->GetActorRotation(), true))
+        {
+            //TODO hit others FVector:: LineSphereIntersection
+            this->TeleportTo(DestLocation, this->GetActorRotation());
+        }
+    }
+}
+
+UAbilitySystemComponent* ASTUBaseCharacter::GetAbilitySystemComponent() const
+{
+    return AbilitySystem;
 }

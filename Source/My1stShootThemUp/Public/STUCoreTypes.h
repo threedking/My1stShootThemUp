@@ -111,3 +111,14 @@ struct FGameData
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "3", ClampMax = "20"))
     int32 RespawnTime = 5; // sec
 };
+
+USTRUCT(BlueprintType)
+struct FBoomData
+{
+    GENERATED_USTRUCT_BODY()
+
+    float Time1st;
+    float Time2nd;
+    FVector Point;
+    FVector Direction2nd;
+};

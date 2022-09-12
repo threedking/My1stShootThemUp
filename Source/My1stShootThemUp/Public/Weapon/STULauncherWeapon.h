@@ -16,10 +16,13 @@ class MY1STSHOOTTHEMUP_API ASTULauncherWeapon : public ASTUBaseWeapon
 public:
     virtual void StartFire() override;
 
+    FVector GetPredictPointByTime(float FlyTime);
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<ASTUProjectile> ProjectileClass;
 
     virtual void MakeShot() override;
+    bool GetTargetPointAndSpeedVector(FVector& TargetPoint, FVector& SpeedVector);
+    bool GetTargetPoint(FVector& TargetPoint);
 
 };

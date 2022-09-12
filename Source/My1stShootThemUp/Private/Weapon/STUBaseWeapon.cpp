@@ -79,7 +79,8 @@ bool ASTUBaseWeapon::GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRot
     return true;
 }
 
-bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const {
+bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
+{
     FVector ViewLocation;
     FRotator ViewRotation;
 
@@ -91,7 +92,6 @@ bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const 
     // const FTransform SocketTransform = this->WeaponMesh->GetSocketTransform(this->MuzzleSocketName);
     TraceStart = ViewLocation; // SocketTransform.GetLocation();
     
-
     //const auto HalfRad = FMath::DegreesToRadians(this->BulletSpread);
     //const FVector ShootDirection = FMath::VRandCone(ViewRotation.Vector(), HalfRad); // SocketTransform.GetRotation().GetForwardVector();
 

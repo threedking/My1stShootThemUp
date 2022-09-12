@@ -298,3 +298,8 @@ bool USTUWeaponComponent::TryToAddAmmo(TSubclassOf<ASTUBaseWeapon> WeaponType, i
     }
     return false;
 }
+
+ASTUBaseWeapon* USTUWeaponComponent::GetCurrentWeapon()
+{
+    return CurrentWeapon;
+}

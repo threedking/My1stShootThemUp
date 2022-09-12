@@ -31,6 +31,7 @@ public:
 
 	bool TryToAddAmmo(TSubclassOf<ASTUBaseWeapon> WeaponType, int32 ClipsAmount);
 
+	ASTUBaseWeapon* USTUWeaponComponent::GetCurrentWeapon();
 
 protected:
 	virtual void BeginPlay() override;

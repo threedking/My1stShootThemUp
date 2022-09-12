@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h"
 #include "STUBaseCharacter.generated.h"
 
 
@@ -12,10 +15,11 @@ class USpringArmComponent;
 class USTUHealthComponent;
 class UTextRenderComponent;
 class USTUWeaponComponent;
+class USphereComponent;
 
 
 UCLASS()
-class MY1STSHOOTTHEMUP_API ASTUBaseCharacter : public ACharacter
+class MY1STSHOOTTHEMUP_API ASTUBaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -25,9 +29,6 @@ public:
 
     // Called to bind functionality to input
     //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    virtual bool GetRunning() const;
 
 protected:
     /*
@@ -58,24 +59,40 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Material")
     FName MaterialColorName = "Paint Color";
-        
 
+    UPROPERTY(EditDefaultsOnly, Category = "Dash")
+    USphereComponent* CollisionComponent;
+        
+    UPROPERTY(EditDefaultsOnly, Category = "Dash", meta = (ClampMin = "0.0", ClampMax = "1000.0"))
+    float DashDistance{};
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
+    UAbilitySystemComponent* AbilitySystem;
+
+    //FGameplayAttributeData asd;
+    //GAMEPLAYATTRIBUTE_PROPERTY_GETTER(asd);
+
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    virtual void Dash();
 
     virtual void OnDeath();
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
-    
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    virtual bool GetRunning() const;
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     float GetMovementDirection() const;
 
     void SetPlayerColor(const FLinearColor& Color);
+
+
 
 private:
 
@@ -95,5 +112,6 @@ private:
     void RunStart();
     void RunEnd();
     */
+
 
 };
