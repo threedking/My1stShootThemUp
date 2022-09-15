@@ -8,6 +8,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/STUAbilitySystemComponent.h"
 #include "GAS/CharacterAttributeSet.h"
+#include "GAS/STUGameplayAbility.h"
 #include "GameplayEffectTypes.h"
 #include "STUBaseCharacter.generated.h"
 
@@ -78,7 +79,20 @@ protected:
     //FGameplayAttributeData asd;
     //GAMEPLAYATTRIBUTE_PROPERTY_GETTER(asd);
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
+    TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
+    TArray<TSubclassOf<USTUGameplayAbility>> DefaultAbilities;
+
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+    
+    virtual void InitializeAttributes();
+    virtual void GiveAbilities();
+
+    virtual void PossessedBy(AController* NewContriller) override; //Gets called on server, init GAS
+    virtual void OnRep_PlayerState() override; //Gets called on client, init GAS
+
 
     virtual void Dash();
 

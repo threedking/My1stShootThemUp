@@ -12,6 +12,8 @@ class MY1STSHOOTTHEMUP_API USTUGameplayAbility : public UGameplayAbility
 {
     GENERATED_BODY()
 
+public:
+
     USTUGameplayAbility();
 
     //Abilities with this set will automatically activate when input is pressed

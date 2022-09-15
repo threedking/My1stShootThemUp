@@ -64,6 +64,12 @@ void ASTUPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::NextWeapon);
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::Reload);
     PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASTUPlayerCharacter::Dash);
+
+    if (AbilitySystemComponent && InputComponent)
+    {
+        FGameplayAbilityInputBinds Binds("Confirm", "Cancel", "EGASAbilityInputID", static_cast<int32>(EGASAbilityInputID::Confirm), static_cast<int32>(EGASAbilityInputID::Cancel));
+        AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
+    }
 }
 
 bool ASTUPlayerCharacter::GetRunning() const

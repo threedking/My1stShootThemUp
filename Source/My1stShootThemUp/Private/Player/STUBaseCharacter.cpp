@@ -207,3 +207,51 @@ UAbilitySystemComponent* ASTUBaseCharacter::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
 }
+
+void ASTUBaseCharacter::InitializeAttributes() 
+{
+    if(!AbilitySystemComponent || !DefaultAttributeEffect) return;
+    
+    FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+    EffectContextHandle.AddSourceObject(this);
+
+    FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContextHandle);
+    if(!EffectSpecHandle.IsValid()) return;
+    
+    FActiveGameplayEffectHandle GEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+}
+
+void ASTUBaseCharacter::GiveAbilities()
+{
+    if(HasAuthority() && AbilitySystemComponent) // Is Server
+    {
+        for(auto& StartupAbility : DefaultAbilities)
+        {
+            AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));
+        }
+    }
+    
+}
+
+void ASTUBaseCharacter::PossessedBy(AController* NewContriller) 
+{
+    Super::PossessedBy(NewContriller);
+
+    AbilitySystemComponent->InitAbilityActorInfo(this, this);
+    InitializeAttributes();
+    GiveAbilities();
+}
+
+void ASTUBaseCharacter::OnRep_PlayerState() 
+{
+    Super::OnRep_PlayerState();
+
+    AbilitySystemComponent->InitAbilityActorInfo(this, this);
+    InitializeAttributes();
+
+    if(AbilitySystemComponent && InputComponent)
+    {
+        FGameplayAbilityInputBinds Binds("Confirm", "Cancel", "EGASAbilityInputID", static_cast<int32>(EGASAbilityInputID::Confirm),static_cast<int32>(EGASAbilityInputID::Cancel));
+        AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
+    }
+}
