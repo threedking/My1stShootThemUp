@@ -3,3 +3,7 @@
 
 #include "GAS/STUGameplayAbility.h"
 
+USTUGameplayAbility::USTUGameplayAbility() 
+{
+
+}

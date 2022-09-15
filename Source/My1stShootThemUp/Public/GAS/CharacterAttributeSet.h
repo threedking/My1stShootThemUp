@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "GAS/STUAbilitySystemComponent.h"
 #include "CharacterAttributeSet.generated.h"
 
 //Macros from AttributeSet.h
@@ -20,17 +21,17 @@ class MY1STSHOOTTHEMUP_API UCharacterAttributeSet : public UAttributeSet
 
 public:
 
-	//UCharacterAttributeSet();
+	UCharacterAttributeSet();
 
-	//virtual void GetLifetimeReplicatedProps(TArray<TLifetimeProperty>& OutLifetimeProps) const override;
-    /*
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", ReplicatedUsing = OnRep_Health)
     FGameplayAttributeData Health;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Health);
 
     UFUNCTION(Category = "Abilities")
     virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
-
+    /*
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", ReplicatedUsing = OnRep_DashDamge)
     FGameplayAttributeData DashDamge;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, DashDamge);

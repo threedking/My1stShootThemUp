@@ -38,7 +38,11 @@ ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
     CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 
-    AbilitySystem = this->CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystem");
+    AbilitySystemComponent = CreateDefaultSubobject<USTUAbilitySystemComponent>("AbilitySystemComponent");
+    AbilitySystemComponent->SetIsReplicated(true);
+    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+    AttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>("AttributeSet");
 }
 
 // Called when the game starts or when spawned
@@ -201,5 +205,5 @@ void ASTUBaseCharacter::Dash()
 
 UAbilitySystemComponent* ASTUBaseCharacter::GetAbilitySystemComponent() const
 {
-    return AbilitySystem;
+    return AbilitySystemComponent;
 }

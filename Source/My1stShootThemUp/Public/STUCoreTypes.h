@@ -122,3 +122,12 @@ struct FBoomData
     FVector Point;
     FVector Direction2nd;
 };
+
+UENUM(BlueprintType)
+enum class EGASAbilityInputID : uint8
+{
+    None,
+    Confirm,
+    Cancel, // This 3 allways need
+    Dash
+};

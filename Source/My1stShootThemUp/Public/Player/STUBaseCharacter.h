@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
+#include "GAS/STUAbilitySystemComponent.h"
+#include "GAS/CharacterAttributeSet.h"
 #include "GameplayEffectTypes.h"
 #include "STUBaseCharacter.generated.h"
 
@@ -67,7 +69,11 @@ protected:
     float DashDistance{};
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
-    UAbilitySystemComponent* AbilitySystem;
+    USTUAbilitySystemComponent* AbilitySystemComponent;
+    //UAbilitySystemComponent* 
+
+    UPROPERTY()
+    UCharacterAttributeSet* AttributeSet;
 
     //FGameplayAttributeData asd;
     //GAMEPLAYATTRIBUTE_PROPERTY_GETTER(asd);
