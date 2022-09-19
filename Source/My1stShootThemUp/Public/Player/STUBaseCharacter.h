@@ -91,14 +91,19 @@ protected:
     virtual void PossessedBy(AController* NewContriller) override; //Gets called on server, init GAS
     virtual void OnRep_PlayerState() override; //Gets called on client, init GAS
 
+    virtual void OnHealthChanged(float Health, float HealthDelta);
+    virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+    virtual void OnStuntChanged(const FOnAttributeChangeData& Data);
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnHealthChangedBP(float Health);
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnStuntChangedBP(bool IsStunt);
 
     virtual void OnDeath();
 
     virtual void BeginPlay() override;
-
-    virtual void OnHealthChanged(float Health, float HealthDelta);
-    virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
-    virtual void OnStuntChanged(const FOnAttributeChangeData& Data);
 
 public:	
 	// Called every frame
@@ -112,6 +117,12 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Abilities")
     virtual bool TryDash(TArray<ASTUBaseCharacter*>& DamagedActors);
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
+    virtual float GetHealth() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
+    virtual bool GetIsStunt() const;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 

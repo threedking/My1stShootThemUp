@@ -159,6 +159,7 @@ void ASTUBaseCharacter::OnHealthChanged(float Health, float HealthDelta) //NOT b
     {
         AttributeSet->SetHealth(Health);
     }
+    OnHealthChangedBP(Health);
     //this->HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
 }
 
@@ -191,6 +192,7 @@ void ASTUBaseCharacter::OnStuntChanged(const FOnAttributeChangeData& Data)
     {
         WeaponComponent->StopFire();
     }
+    OnStuntChangedBP(!FMath::IsNearlyZero(Data.NewValue));
 }
 
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
@@ -223,7 +225,7 @@ bool ASTUBaseCharacter::TryToAddHealth(int32 HelthAmount)
 
 bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
 {
-    if(!GetWorld()) return false;
+    if(!GetWorld() || HealthComponent->IsDead()) return false;
     
     FCollisionQueryParams CollisionParams;
     TArray<AActor*> AllActors;
@@ -344,6 +346,24 @@ bool ASTUBaseCharacter::IsStuned() const
     if(AttributeSet && !FMath::IsNearlyZero(AttributeSet->GetIsStunt()))
     {
         return true;
+    }
+    return false;
+}
+
+float ASTUBaseCharacter::GetHealth() const
+{
+    if(AttributeSet)
+    {
+        return AttributeSet->GetHealth();
+    }
+    return 0.0f;
+}
+
+bool ASTUBaseCharacter::GetIsStunt() const
+{
+    if(AttributeSet)
+    {
+        return !FMath::IsNearlyZero(AttributeSet->GetIsStunt());
     }
     return false;
 }
