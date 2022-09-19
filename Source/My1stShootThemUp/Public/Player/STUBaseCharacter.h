@@ -73,7 +73,7 @@ protected:
     USTUAbilitySystemComponent* AbilitySystemComponent;
     //UAbilitySystemComponent* 
 
-    UPROPERTY()
+    UPROPERTY(BlueprintReadWrite, Category = "Abilities")
     UCharacterAttributeSet* AttributeSet;
 
     //FGameplayAttributeData asd;
@@ -84,9 +84,7 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
     TArray<TSubclassOf<USTUGameplayAbility>> DefaultAbilities;
-
-    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-    
+        
     virtual void InitializeAttributes();
     virtual void GiveAbilities();
 
@@ -94,11 +92,13 @@ protected:
     virtual void OnRep_PlayerState() override; //Gets called on client, init GAS
 
 
-    virtual void Dash();
-
     virtual void OnDeath();
 
     virtual void BeginPlay() override;
+
+    virtual void OnHealthChanged(float Health, float HealthDelta);
+    virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+    virtual void OnStuntChanged(const FOnAttributeChangeData& Data);
 
 public:	
 	// Called every frame
@@ -110,15 +110,19 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Movement")
     float GetMovementDirection() const;
 
+    UFUNCTION(BlueprintCallable, Category = "Abilities")
+    virtual bool TryDash(TArray<ASTUBaseCharacter*>& DamagedActors);
+
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    bool IsStuned() const;
+
     void SetPlayerColor(const FLinearColor& Color);
-
-
+    bool TryToAddHealth(int32 HelthAmount);
 
 private:
 
-    void OnHealthChanged(float Health, float HealthDelta);
-        
-	UFUNCTION()
+    UFUNCTION()
     void OnGroundLanded(const FHitResult& Hit);
 
     /*

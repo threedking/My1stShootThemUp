@@ -18,4 +18,5 @@ public:
     float RunModifier = 2.0f;
 
     virtual float GetMaxSpeed() const override;
+    virtual FRotator GetDeltaRotation(float DeltaTime) const override;
 };

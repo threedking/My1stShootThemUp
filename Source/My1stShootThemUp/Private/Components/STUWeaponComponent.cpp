@@ -6,6 +6,7 @@
 #include "Animations/STUEquipFinishedAnimNotify.h"
 #include "Animations/STUReloadFinishedAnimNotify.h"
 #include "Animations/AnimUtils.h"
+#include "Player/STUBaseCharacter.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogWeaponComponent, All, All);
@@ -122,13 +123,9 @@ void USTUWeaponComponent::StartFire()
 }
 void USTUWeaponComponent::StopFire()
 {
+    if(!CurrentWeapon) return;
 
-    if (!this->CurrentWeapon)
-    {
-        return;
-    }
-
-    this->CurrentWeapon->StopFire();
+    CurrentWeapon->StopFire();
 }
 
 void USTUWeaponComponent::NextWeapon() 
@@ -201,18 +198,22 @@ void USTUWeaponComponent::OnReloadFinished(USkeletalMeshComponent* MeshComponent
 
 bool USTUWeaponComponent::CanFire() const
 {
-    return this->CurrentWeapon && !this->EquipAnimInProgress && !this->ReloadAnimInProgress;
+    auto Player = Cast<ASTUBaseCharacter>(GetOwner());
+    return Player && !Player->IsStuned() && this->CurrentWeapon && !this->EquipAnimInProgress && !this->ReloadAnimInProgress;
 }
 bool USTUWeaponComponent::CanEquip() const
 {
-    return !this->EquipAnimInProgress && !this->ReloadAnimInProgress;
+    auto Player = Cast<ASTUBaseCharacter>(GetOwner());
+    return Player && !Player->IsStuned() && !this->EquipAnimInProgress && !this->ReloadAnimInProgress;
 }
 
 bool USTUWeaponComponent::CanReload() const
 {
-    return this->CurrentWeapon && //
-        !this->EquipAnimInProgress && //
-        !this->ReloadAnimInProgress &&//
+    auto Player = Cast<ASTUBaseCharacter>(GetOwner());
+    return Player && !Player->IsStuned() && 
+        this->CurrentWeapon && 
+        !this->EquipAnimInProgress && 
+        !this->ReloadAnimInProgress &&
         this->CurrentWeapon->CanReload();
 }
 
@@ -245,8 +246,8 @@ void USTUWeaponComponent::OnEmptyClip(ASTUBaseWeapon* AmmoEmptyWeapon)
 
 void USTUWeaponComponent::ChangeClip() 
 {
-    if (!this->CanReload())
-        return;
+    if(!this->CanReload()) return;
+
     this->CurrentWeapon->StopFire();
     this->CurrentWeapon->ChangeClip();
     this->ReloadAnimInProgress = true;

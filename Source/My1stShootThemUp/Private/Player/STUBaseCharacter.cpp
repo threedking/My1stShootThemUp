@@ -14,6 +14,11 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Intersection/IntersectionUtil.h"
+#include "EngineUtils.h"
+#include "GameplayEffectTypes.h"
+#include "GameplayEffectExtension.h"
+
 
 DEFINE_LOG_CATEGORY_STATIC(BaseCharecterLog, All, All);
 
@@ -23,7 +28,7 @@ ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+    
     this->HealthComponent = this->CreateDefaultSubobject<USTUHealthComponent>("HealthComponent");
         // нет SetupAttachment потому что нет представления на сцене
     
@@ -55,6 +60,7 @@ void ASTUBaseCharacter::BeginPlay()
     check(this->GetCharacterMovement());
     check(this->GetMesh());
     check(CollisionComponent);
+    check(AbilitySystemComponent);
     //Проверка макросом чек, который сгенерит assrtion, есди компоненты нулевые
     //Работает только в дебаг и дев билдах
 
@@ -64,6 +70,12 @@ void ASTUBaseCharacter::BeginPlay()
     this->HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
     this->HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
 
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
+        .AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
+
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetIsStuntAttribute())
+        .AddUObject(this, &ASTUBaseCharacter::OnStuntChanged);
+    
     this->LandedDelegate.AddDynamic(this, &ASTUBaseCharacter::OnGroundLanded);
 }
 
@@ -141,9 +153,44 @@ void ASTUBaseCharacter::OnDeath()
 
 }
 
-void ASTUBaseCharacter::OnHealthChanged(float Health, float HealthDelta)
+void ASTUBaseCharacter::OnHealthChanged(float Health, float HealthDelta) //NOT by GAS
 {
+    if(!FMath::IsNearlyEqual(AttributeSet->GetHealth(), Health))
+    {
+        AttributeSet->SetHealth(Health);
+    }
     //this->HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
+}
+
+void ASTUBaseCharacter::OnHealthChanged(const FOnAttributeChangeData& Data) //By GAS
+{
+    UE_LOG(BaseCharecterLog, Display, TEXT("OnHealthChanged Old: %f, New: %f"), Data.OldValue, Data.NewValue);
+    ASTUBaseCharacter* Causer{nullptr};
+    if(Data.GEModData)
+    {
+        Causer = Cast<ASTUBaseCharacter>(Data.GEModData->EffectSpec.GetEffectContext().GetInstigator());
+    }
+
+    if (!FMath::IsNearlyEqual(Data.NewValue, HealthComponent->GetHealth()))
+    {
+        if (Data.NewValue < Data.OldValue)
+        {
+            TakeDamage(Data.OldValue - Data.NewValue, FDamageEvent(), Causer && Causer->GetController() ? Causer->GetController() : nullptr,
+                Causer ? Causer : nullptr);
+        }
+        else
+        {
+            TryToAddHealth(Data.NewValue - Data.OldValue);
+        }
+    }
+}
+
+void ASTUBaseCharacter::OnStuntChanged(const FOnAttributeChangeData& Data)
+{
+    if(!FMath::IsNearlyZero(Data.NewValue))
+    {
+        WeaponComponent->StopFire();
+    }
 }
 
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
@@ -169,9 +216,14 @@ void ASTUBaseCharacter::SetPlayerColor(const FLinearColor& Color)
     MaterialInst->SetVectorParameterValue(this->MaterialColorName, Color);
 }
 
-void ASTUBaseCharacter::Dash() 
+bool ASTUBaseCharacter::TryToAddHealth(int32 HelthAmount) 
 {
-    if(!GetWorld()) return;
+    return HealthComponent->TryToAddHealth(HelthAmount);
+}
+
+bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
+{
+    if(!GetWorld()) return false;
     
     FCollisionQueryParams CollisionParams;
     TArray<AActor*> AllActors;
@@ -181,13 +233,14 @@ void ASTUBaseCharacter::Dash()
     FVector DestLocation = GetActorLocation() + GetActorForwardVector() * DashDistance;
     FHitResult HitResult;
     GetWorld()->LineTraceSingleByChannel(HitResult, GetActorLocation(), DestLocation, ECollisionChannel::ECC_Visibility, CollisionParams);
+    float ActualDashDistance = DashDistance;
 
     if(HitResult.bBlockingHit)
     {
-        float NewDashDistance = HitResult.Distance - GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-        if(NewDashDistance < DashDistance && NewDashDistance > GetCapsuleComponent()->GetUnscaledCapsuleRadius())
+        ActualDashDistance = HitResult.Distance - GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+        if (ActualDashDistance < DashDistance && ActualDashDistance > GetCapsuleComponent()->GetUnscaledCapsuleRadius())
         {
-            DestLocation = GetActorLocation() + GetActorForwardVector() * NewDashDistance;
+            DestLocation = GetActorLocation() + GetActorForwardVector() * ActualDashDistance;
             HitResult.Reset();
             GetWorld()->LineTraceSingleByChannel(HitResult, GetActorLocation(), DestLocation, ECollisionChannel::ECC_Visibility, CollisionParams);
         }            
@@ -195,12 +248,42 @@ void ASTUBaseCharacter::Dash()
 
     if(!HitResult.bBlockingHit)
     {
-        if(this->TeleportTo(DestLocation, this->GetActorRotation(), true))
+        if(TeleportTo(DestLocation, GetActorRotation(), true))
         {
-            //TODO hit others FVector:: LineSphereIntersection
-            this->TeleportTo(DestLocation, this->GetActorRotation());
+            FVector DashDirection = (DestLocation - GetActorLocation()).GetSafeNormal();
+
+            //if(HitResult.GetActor()->IsA(ASTUBaseCharacter::StaticClass())){}
+
+            for(auto Actor : TActorRange<ASTUBaseCharacter>(this->GetWorld()))
+            {
+                if(Actor == this) continue;
+
+                auto Intersection = IntersectionUtil::LineSphereIntersection<float>(GetActorLocation(), DashDirection, Actor->GetActorLocation(), 1000.0f);
+                if(Intersection.intersects)
+                {
+
+                    UE_LOG(BaseCharecterLog, Display, TEXT("Intersection! With %s"), *Actor->GetName());
+                    DamagedActors.Add(Actor);
+                    /*
+                    if(this->AbilitySystemComponent && Actor->AbilitySystemComponent)
+                    {
+
+                        FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+                        EffectContextHandle.AddSourceObject(this);
+
+                        FGameplayEffectSpecHandle EffectSpecHandle =
+                            AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContextHandle);
+                        if (!EffectSpecHandle.IsValid()) continue;
+                    }
+                    */
+                }
+            }
+
+            TeleportTo(DestLocation, GetActorRotation());
+            return true;
         }
     }
+    return false;
 }
 
 UAbilitySystemComponent* ASTUBaseCharacter::GetAbilitySystemComponent() const
@@ -254,4 +337,13 @@ void ASTUBaseCharacter::OnRep_PlayerState()
         FGameplayAbilityInputBinds Binds("Confirm", "Cancel", "EGASAbilityInputID", static_cast<int32>(EGASAbilityInputID::Confirm),static_cast<int32>(EGASAbilityInputID::Cancel));
         AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
     }
+}
+
+bool ASTUBaseCharacter::IsStuned() const
+{
+    if(AttributeSet && !FMath::IsNearlyZero(AttributeSet->GetIsStunt()))
+    {
+        return true;
+    }
+    return false;
 }

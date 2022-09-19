@@ -19,7 +19,8 @@ public class My1stShootThemUp : ModuleRules
 			"NavigationSystem",
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks"
+			"GameplayTasks",
+			"GeometricObjects"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

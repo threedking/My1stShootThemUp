@@ -63,7 +63,7 @@ void ASTUPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     PlayerInputComponent->BindAction("Fire", IE_Released, this->WeaponComponent, &USTUWeaponComponent::StopFire);
     PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::NextWeapon);
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this->WeaponComponent, &USTUWeaponComponent::Reload);
-    PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASTUPlayerCharacter::Dash);
+    //PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASTUPlayerCharacter::Dash);
 
     if (AbilitySystemComponent && InputComponent)
     {
