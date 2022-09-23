@@ -101,7 +101,8 @@ bool ASTURifleWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
     TraceStart = ViewLocation; // SocketTransform.GetLocation();
 
     const auto HalfRad = FMath::DegreesToRadians(this->BulletSpread);
-    const FVector ShootDirection = FMath::VRandCone(ViewRotation.Vector(), HalfRad); // SocketTransform.GetRotation().GetForwardVector();
+    //const FVector ShootDirection = FMath::VRandCone(ViewRotation.Vector(), HalfRad);
+    const FVector ShootDirection = ViewRotation.Vector();
 
 
     TraceEnd = TraceStart + ShootDirection * this->TraceMaxDistance;
