@@ -1,16 +1,9 @@
 // My 1st Unreal Shoot Them Up Game
 
-
 #include "GAS/CharacterAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "Player/STUBaseCharacter.h"
-
-/* FGameplayAttribute UCharacterAttributeSet::StatusAttribute()
-{
-    static UProperty* Property = FindFieldChecked<UProperty>(UCharacterAttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UCharacterAttributeSet, Status));
-    return FGameplayAttribute(Property);
-}*/
 
 UCharacterAttributeSet::UCharacterAttributeSet() 
 {

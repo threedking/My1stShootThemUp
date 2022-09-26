@@ -65,9 +65,12 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Dash")
     USphereComponent* CollisionComponent;
-        
+
     UPROPERTY(EditDefaultsOnly, Category = "Dash", meta = (ClampMin = "0.0", ClampMax = "1000.0"))
     float DashDistance{};
+
+    UPROPERTY(EditDefaultsOnly, Category = "Dash", meta = (ClampMin = "10.0", ClampMax = "1000.0"))
+    float DashIntersectionSphereRadius{150};
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
     USTUAbilitySystemComponent* AbilitySystemComponent;
@@ -122,11 +125,9 @@ public:
     virtual float GetHealth() const;
 
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
-    virtual bool GetIsStunt() const;
+    virtual bool IsStuned() const;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-    bool IsStuned() const;
 
     void SetPlayerColor(const FLinearColor& Color);
     bool TryToAddHealth(int32 HelthAmount);

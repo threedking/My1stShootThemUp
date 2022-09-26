@@ -18,6 +18,7 @@
 #include "EngineUtils.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
+#include "DrawDebugHelpers.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(BaseCharecterLog, All, All);
@@ -188,11 +189,16 @@ void ASTUBaseCharacter::OnHealthChanged(const FOnAttributeChangeData& Data) //By
 
 void ASTUBaseCharacter::OnStuntChanged(const FOnAttributeChangeData& Data)
 {
-    if(!FMath::IsNearlyZero(Data.NewValue))
+    bool NewIsStuned = !FMath::IsNearlyZero(Data.NewValue);
+    if(NewIsStuned)
     {
         WeaponComponent->StopFire();
     }
-    OnStuntChangedBP(!FMath::IsNearlyZero(Data.NewValue));
+    if (NewIsStuned != !FMath::IsNearlyZero(Data.OldValue))
+    {
+        OnStuntChangedBP(NewIsStuned);
+    }
+    
 }
 
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
@@ -250,38 +256,31 @@ bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
 
     if(!HitResult.bBlockingHit)
     {
-        if(TeleportTo(DestLocation, GetActorRotation(), true))
+        const auto MyLocation = GetActorLocation();
+        if(TeleportTo(DestLocation, GetActorRotation()))
         {
-            FVector DashDirection = (DestLocation - GetActorLocation()).GetSafeNormal();
-
-            //if(HitResult.GetActor()->IsA(ASTUBaseCharacter::StaticClass())){}
+            FVector DashDirection = (DestLocation - MyLocation).GetSafeNormal();
 
             for(auto Actor : TActorRange<ASTUBaseCharacter>(this->GetWorld()))
             {
                 if(Actor == this) continue;
-
-                auto Intersection = IntersectionUtil::LineSphereIntersection<float>(GetActorLocation(), DashDirection, Actor->GetActorLocation(), 1000.0f);
-                if(Intersection.intersects)
+                
+                DrawDebugLine(GetWorld(), MyLocation, DestLocation, FColor::Red, false, 5.0f, 0, 3.0f);
+                DrawDebugSphere(GetWorld(), Actor->GetActorLocation(), DashIntersectionSphereRadius, 16, FColor::Red, false, 5);
+                
+                auto Intersection = IntersectionUtil::LineSphereIntersection<float>(MyLocation, DashDirection, Actor->GetActorLocation(), DashIntersectionSphereRadius);
+                
+                if( Intersection.intersects
+                    &&
+                    ((Intersection.parameter.Min >= 0.0f && Intersection.parameter.Min <= ActualDashDistance) ||
+                    (Intersection.numIntersections == 2 && Intersection.parameter.Max >= 0.0f && Intersection.parameter.Max <= ActualDashDistance))
+                  )
                 {
-
+                    
                     UE_LOG(BaseCharecterLog, Display, TEXT("Intersection! With %s"), *Actor->GetName());
                     DamagedActors.Add(Actor);
-                    /*
-                    if(this->AbilitySystemComponent && Actor->AbilitySystemComponent)
-                    {
-
-                        FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-                        EffectContextHandle.AddSourceObject(this);
-
-                        FGameplayEffectSpecHandle EffectSpecHandle =
-                            AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContextHandle);
-                        if (!EffectSpecHandle.IsValid()) continue;
-                    }
-                    */
                 }
             }
-
-            TeleportTo(DestLocation, GetActorRotation());
             return true;
         }
     }
@@ -341,15 +340,6 @@ void ASTUBaseCharacter::OnRep_PlayerState()
     }
 }
 
-bool ASTUBaseCharacter::IsStuned() const
-{
-    if(AttributeSet && !FMath::IsNearlyZero(AttributeSet->GetIsStunt()))
-    {
-        return true;
-    }
-    return false;
-}
-
 float ASTUBaseCharacter::GetHealth() const
 {
     if(AttributeSet)
@@ -359,11 +349,7 @@ float ASTUBaseCharacter::GetHealth() const
     return 0.0f;
 }
 
-bool ASTUBaseCharacter::GetIsStunt() const
+bool ASTUBaseCharacter::IsStuned() const
 {
-    if(AttributeSet)
-    {
-        return !FMath::IsNearlyZero(AttributeSet->GetIsStunt());
-    }
-    return false;
+    return AttributeSet && !FMath::IsNearlyZero(AttributeSet->GetIsStunt());
 }
