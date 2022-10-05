@@ -160,7 +160,7 @@ public:
             return false;
         }
 
-        static bool GetBoomData(FBoomData& BoomData, FVector ShottingActorLocation, AActor* FlyingActor, float InitialSpeed)
+        static bool GetBoomData(FBoomData& BoomData, FVector ShottingActorLocation, AActor* FlyingActor, float InitialSpeed, bool SameTime = false)
         {
             auto TargetVelocityVector = FlyingActor->GetVelocity();
 
@@ -169,7 +169,7 @@ public:
 
             float FarTime = 2.0f;
             float AdditionalTime = FarTime * 0.05f;
-            for(float ChekingTime = FarTime * 0.1f; ChekingTime > 0.0f && ChekingTime <= FarTime; ChekingTime += AdditionalTime)
+            for(float ChekingTime = FarTime * 0.1f; ChekingTime <= FarTime; ChekingTime += AdditionalTime)
             {
                 auto BoomPoint = FlyingActor->GetActorLocation();
                 BoomPoint.X += TargetVelocityVector.X * ChekingTime;
@@ -181,6 +181,8 @@ public:
 
                 if(GetAngleZAndFlyTime(AngleZ, FlyTime, ChekingTime, DistanceToBoomPointXY, DistanceToBoomPointZ, InitialSpeed))
                 {
+                    if(SameTime && !FMath::IsNearlyEqual(FlyTime, ChekingTime)) continue;
+
                     FVector VelocityToPoint = GetVelocityToPoint(ShottingActorLocation, AngleZ, InitialSpeed, FlyTime, BoomPoint.X, BoomPoint.Y);
 
                     BoomData.Time1st = ChekingTime;

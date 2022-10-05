@@ -55,5 +55,12 @@ public:
 
     UFUNCTION(Category = "Abilities")
     virtual void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", ReplicatedUsing = OnRep_Frost)
+    FGameplayAttributeData Frost;
+    ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Frost);
+
+    UFUNCTION(Category = "Abilities")
+    virtual void OnRep_Frost(const FGameplayAttributeData& OldFrost);
 	
 };

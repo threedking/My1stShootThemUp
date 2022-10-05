@@ -29,9 +29,14 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const struct FGameplayEff
         Character = Cast<ASTUBaseCharacter>(Data.Target.AbilityActorInfo->AvatarActor.Get());
     }
 
-    if(Data.EvaluatedData.Attribute == GetHealthAttribute())
+    if (Data.EvaluatedData.Attribute == GetHealthAttribute())
     {
         SetHealth(FMath::Clamp(GetHealth(), 0.0f, 100.0f));
+    }
+
+    if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+    {
+        SetStamina(FMath::Clamp(GetStamina(), 0.0f, 100.0f));
     }
 }
 
@@ -48,6 +53,7 @@ void UCharacterAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSet, DashDamge, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSet, IsStunt, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSet, Stamina, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSet, Frost, COND_None, REPNOTIFY_Always);
 }
 
 
@@ -69,4 +75,9 @@ void UCharacterAttributeSet::OnRep_IsStunt(const FGameplayAttributeData& OldIsSt
 void UCharacterAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, Stamina, OldStamina);
+}
+
+void UCharacterAttributeSet::OnRep_Frost(const FGameplayAttributeData& OldFrost) 
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, Frost, OldFrost);
 }
