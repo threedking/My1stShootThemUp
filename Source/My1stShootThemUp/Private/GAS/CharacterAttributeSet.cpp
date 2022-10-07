@@ -38,6 +38,11 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const struct FGameplayEff
     {
         SetStamina(FMath::Clamp(GetStamina(), 0.0f, 100.0f));
     }
+
+    if (Data.EvaluatedData.Attribute == GetFrostAttribute())
+    {
+        SetFrost(FMath::Clamp(GetFrost(), 0.0f, 2.0f));
+    }
 }
 
 void UCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)

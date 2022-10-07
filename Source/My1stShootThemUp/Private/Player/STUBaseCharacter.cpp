@@ -14,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Intersection/IntersectionUtil.h"
 #include "EngineUtils.h"
 #include "GameplayEffectTypes.h"
@@ -76,6 +77,9 @@ void ASTUBaseCharacter::BeginPlay()
 
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetIsStuntAttribute())
         .AddUObject(this, &ASTUBaseCharacter::OnStuntChanged);
+
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetFrostAttribute())
+        .AddUObject(this, &ASTUBaseCharacter::OnFrostChanged);
     
     this->LandedDelegate.AddDynamic(this, &ASTUBaseCharacter::OnGroundLanded);
 }
@@ -201,6 +205,14 @@ void ASTUBaseCharacter::OnStuntChanged(const FOnAttributeChangeData& Data)
     
 }
 
+void ASTUBaseCharacter::OnFrostChanged(const FOnAttributeChangeData& Data)
+{
+    bool IsFrosen = FMath::IsNearlyEqual(Data.NewValue, 1.0f);
+
+    CustomTimeDilation = FMath::Clamp(1.0f - Data.NewValue, 0.0f, 1.0f);
+    OnFrostChangedBP(Data.NewValue);
+}
+
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
 {
     const auto FallVelocityZ = -this->GetCharacterMovement()->Velocity.Z;
@@ -227,6 +239,44 @@ void ASTUBaseCharacter::SetPlayerColor(const FLinearColor& Color)
 bool ASTUBaseCharacter::TryToAddHealth(int32 HelthAmount) 
 {
     return HealthComponent->TryToAddHealth(HelthAmount);
+}
+
+TArray<ASTUBaseCharacter*> ASTUBaseCharacter::Freeze()
+{
+    TArray<ASTUBaseCharacter*> DamagedActors;
+
+    if (!GetWorld() || HealthComponent->IsDead()) return DamagedActors;
+
+    FVector DestLocation = GetActorLocation() + GetActorForwardVector() * FreezeDistance;
+    
+    TArray<AActor*> IgnoreActors;
+    IgnoreActors.Add(this);
+
+    TArray<FHitResult> HitResults;
+
+    if(UKismetSystemLibrary::SphereTraceMulti(
+        GetWorld(),
+        GetActorLocation(),
+        DestLocation,
+        FreezeIntersectionSphereRadius,
+        UEngineTypes::ConvertToTraceType(ECC_Camera),
+        false,
+        IgnoreActors,
+        EDrawDebugTrace::ForDuration,
+        HitResults,
+        true))
+    {
+        
+        for (const auto& HitResult : HitResults)
+        {
+            auto BaseCharacter = Cast<ASTUBaseCharacter>(HitResult.Actor);
+            if(BaseCharacter && BaseCharacter != this)
+            {
+                DamagedActors.AddUnique(BaseCharacter);
+            }
+        }
+    }
+    return DamagedActors;
 }
 
 bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
@@ -278,7 +328,7 @@ bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
                 {
                     
                     UE_LOG(BaseCharecterLog, Display, TEXT("Intersection! With %s"), *Actor->GetName());
-                    DamagedActors.Add(Actor);
+                    DamagedActors.AddUnique(Actor);
                 }
             }
             return true;

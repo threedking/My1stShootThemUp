@@ -72,6 +72,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Dash", meta = (ClampMin = "10.0", ClampMax = "1000.0"))
     float DashIntersectionSphereRadius{150};
 
+    UPROPERTY(EditDefaultsOnly, Category = "Freeze", meta = (ClampMin = "10.0", ClampMax = "300.0"))
+    float FreezeIntersectionSphereRadius{100};
+
+    UPROPERTY(EditDefaultsOnly, Category = "Freeze", meta = (ClampMin = "0.0", ClampMax = "1000.0"))
+    float FreezeDistance{500};
+
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
     USTUAbilitySystemComponent* AbilitySystemComponent;
     //UAbilitySystemComponent* 
@@ -97,12 +103,16 @@ protected:
     virtual void OnHealthChanged(float Health, float HealthDelta);
     virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
     virtual void OnStuntChanged(const FOnAttributeChangeData& Data);
+    virtual void OnFrostChanged(const FOnAttributeChangeData& Data);
 
     UFUNCTION(BlueprintImplementableEvent)
     void OnHealthChangedBP(float Health);
 
     UFUNCTION(BlueprintImplementableEvent)
     void OnStuntChangedBP(bool IsStunt);
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnFrostChangedBP(float Frost);
 
     virtual void OnDeath();
 
@@ -120,6 +130,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Abilities")
     virtual bool TryDash(TArray<ASTUBaseCharacter*>& DamagedActors);
+
+    UFUNCTION(BlueprintCallable, Category = "Abilities")
+    virtual TArray<ASTUBaseCharacter*> Freeze();
 
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
     virtual float GetHealth() const;

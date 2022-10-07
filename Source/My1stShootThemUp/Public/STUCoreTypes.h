@@ -129,5 +129,6 @@ enum class EGASAbilityInputID : uint8
     None,
     Confirm,
     Cancel, // This 3 allways need
-    Dash
+    Dash,
+    Freeze
 };
