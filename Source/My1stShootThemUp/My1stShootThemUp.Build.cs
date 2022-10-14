@@ -20,7 +20,8 @@ public class My1stShootThemUp : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
-			"GeometricObjects"
+			"GeometricObjects",
+			"ApexDestruction"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

@@ -49,6 +49,7 @@ public:
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     
 	float GetHealth() const;
+    float GetMaxHealth() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
     bool IsDead() const;
@@ -63,13 +64,12 @@ public:
 private:
     float Health = 0.0f;
 
-	
-	void SetHealth(float NewHealth);
-
 	FTimerHandle HealTimer;
 
 	void OnHealTimerFired();
-	
+
+    void SetHealth(float NewHealth);
+
     UFUNCTION()
     void OnTakeAnyDamageHandle(
         AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

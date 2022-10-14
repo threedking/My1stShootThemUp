@@ -7,6 +7,8 @@
 #include "Weapon/Components/STUWeaponFXComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "DestructibleComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWeapon, All, All);
 
@@ -67,7 +69,7 @@ void ASTURifleWeapon::MakeShot()
         {
             float ResultDamage = this->Damage;
 
-            if (HitResult.BoneName.IsEqual(FName("b_head")))
+            if(HitResult.BoneName.IsEqual(FName("b_head")))
             {
                 UE_LOG(LogWeapon, Display, TEXT("HEAD SHOOT!!!"));
                 ResultDamage = Damage * 10;
@@ -76,7 +78,22 @@ void ASTURifleWeapon::MakeShot()
             {
                 ResultDamage = Damage;
             }
-
+            
+            if(HitResult.GetComponent() && HitResult.GetComponent()->IsA(UDestructibleComponent::StaticClass()))
+            {
+                UGameplayStatics::ApplyRadialDamage(this->GetWorld(),
+                    100,
+                    HitResult.ImpactPoint,
+                    1,
+                    UDamageType::StaticClass(), 
+                    {},
+                    this,                       
+                    this->GetController(),      
+                    true);
+                //HitResult.GetComponent()->ReceiveComponentDamage(ResultDamage, FDamageEvent{}, this->GetController(), this);
+                HitResult.GetComponent()->SetPhysicsLinearVelocity((TraceEnd - TraceStart).GetSafeNormal() * 100, true, HitResult.BoneName);
+                //HitResult.GetComponent()->AddForceAtLocation((TraceEnd - TraceStart).GetSafeNormal() * 100, HitResult.ImpactPoint, HitResult.BoneName);
+            }
             DamagedActor->TakeDamage(ResultDamage, FDamageEvent{}, this->GetController(), this);
         }
         this->WeaponFXComponent->PlayImpactFX(HitResult);

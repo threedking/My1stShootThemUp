@@ -25,6 +25,17 @@ public:
 
 		return PlayerState1 && PlayerState2 && PlayerState1->GetTeamID() != PlayerState2->GetTeamID();
 	}
+    
+    static float FastGrowth(float x, float growth_coeff, float slowdown_coeff)
+    {
+        if(growth_coeff < 0.01f) return x;
+
+        float growth = 1.0f - FMath::Pow((1.0f - x), growth_coeff);
+        float slow = growth * slowdown_coeff;
+        float result = growth - slow * (1.0f - x);
+
+        return result;
+    }
 
 	class PointToHorizon
     {
@@ -33,6 +44,7 @@ public:
         {
             return -UPhysicsSettings::Get()->DefaultGravityZ;
         }
+
         static FVector GetPredictPoint(float FlyTime, float InitialSpeed, FVector StartPoint, FVector EndPoint)
         {
             if (FlyTime < 0.001f)
@@ -61,7 +73,6 @@ public:
 
             return PredictPoint;
         }
-                
 
         static FVector GetVelocityToPoint(FVector StartPoint, float AngleZ, float InitialSpeed, float FlyTime, float EndPointX, float EndPointY)
         {

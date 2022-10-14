@@ -19,6 +19,9 @@ class USTUHealthComponent;
 class UTextRenderComponent;
 class USTUWeaponComponent;
 class USphereComponent;
+class UMeshComponent;
+class AADestructibleActor;
+class UNiagaraSystem;
 
 
 UCLASS()
@@ -53,6 +56,15 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     UAnimMontage* DeathAnimMontage;
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* FreezeAnimMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Freeze")
+    FName FreezeSocketName = "FreezeSocket";
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Freeze")
+    UNiagaraSystem* FreezeNiagaraEffect;
 
     UPROPERTY(EditDefaultsOnly, Category = "Damage")
     FVector2D LandedDamageVelocity = FVector2D(900.0f, 1200.0f);
@@ -77,6 +89,16 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Freeze", meta = (ClampMin = "0.0", ClampMax = "1000.0"))
     float FreezeDistance{500};
+
+    UPROPERTY(EditDefaultsOnly, Category = "Freeze", meta = (ClampMin = "0.01", ClampMax = "100.0"))
+    float FreezeGrowthCoeff{5};
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Freeze")
+    TSubclassOf<AADestructibleActor> DestructibleActorClass;
+    
+
+    UPROPERTY(EditDefaultsOnly, Category = "Freeze", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+    float FreezeSlowdownCoeff{0.2};
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Abilities")
     USTUAbilitySystemComponent* AbilitySystemComponent;
@@ -139,6 +161,12 @@ public:
 
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
     virtual bool IsStuned() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Abilities")
+    virtual bool IsFrosen() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    virtual void Kill();
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 

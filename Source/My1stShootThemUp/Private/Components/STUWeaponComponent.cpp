@@ -304,3 +304,30 @@ ASTUBaseWeapon* USTUWeaponComponent::GetCurrentWeapon()
 {
     return CurrentWeapon;
 }
+
+void USTUWeaponComponent::DropAllWeapons(int LifeTime)
+{
+    for(auto Weapon : Weapons)
+    {
+        if(Weapon)
+        {
+            const FTransform SpawnTransform(Weapon->GetActorRotation(), Weapon->GetActorLocation());            
+            auto newWeapon = GetWorld()->SpawnActorAbsolute<ASTUBaseWeapon>(Weapon->GetClass(), SpawnTransform);
+            newWeapon->SetLifeSpan(LifeTime);
+
+            auto Components = newWeapon->GetComponents();
+            for (auto& Component : Components)
+            {
+                auto PrimitiveComponent = Cast<UPrimitiveComponent>(Component);
+                if(PrimitiveComponent)
+                {
+                    PrimitiveComponent->SetSimulatePhysics(true);
+                    PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+                }
+            }
+
+            Weapon->Destroy();
+        }
+    }
+    CurrentWeapon = nullptr;
+}

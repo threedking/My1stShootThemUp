@@ -115,7 +115,7 @@ void ASTUProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
     {
         Projectile->Destroy();
         this->Destroy();
-        UE_LOG(LogProjectile, Display, TEXT("Projectiles destroyed!!!!!!!!!!!!!!!!!"));
+        //UE_LOG(LogProjectile, Display, TEXT("Projectiles destroyed!!!!!!!!!!!!!!!!!"));
     }
 }
 

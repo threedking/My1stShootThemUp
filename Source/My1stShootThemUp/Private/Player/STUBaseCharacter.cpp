@@ -20,6 +20,9 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
 #include "DrawDebugHelpers.h"
+#include "STUUtils.h"
+#include "Destructible/ADestructibleActor.h"
+#include "NiagaraFunctionLibrary.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(BaseCharecterLog, All, All);
@@ -145,16 +148,25 @@ void ASTUBaseCharacter::OnDeath()
     //UE_LOG(BaseCharecterLog, Display, TEXT("Player %s is DEAD!"), *this->GetName());
 
     //this->PlayAnimMontage(this->DeathAnimMontage);
-
-    this->GetCharacterMovement()->DisableMovement();
-
-    this->SetLifeSpan(5.0f);
-
-    this->GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-    this->WeaponComponent->StopFire();
-
-    this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    this->GetMesh()->SetSimulatePhysics(true);
+    if(IsFrosen())
+    {
+        WeaponComponent->DropAllWeapons(5);
+        if (DestructibleActorClass)
+        {
+            const FTransform SpawnTransform(GetMesh()->GetComponentRotation(), GetMesh()->GetComponentLocation());
+            GetWorld()->SpawnActor<AADestructibleActor>(DestructibleActorClass, SpawnTransform);
+        }
+        Destroy();
+    }
+    else
+    {
+        GetCharacterMovement()->DisableMovement();
+        SetLifeSpan(5.0f);
+        GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+        WeaponComponent->StopFire();
+        GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        GetMesh()->SetSimulatePhysics(true);
+    }
 
 }
 
@@ -207,10 +219,21 @@ void ASTUBaseCharacter::OnStuntChanged(const FOnAttributeChangeData& Data)
 
 void ASTUBaseCharacter::OnFrostChanged(const FOnAttributeChangeData& Data)
 {
-    bool IsFrosen = FMath::IsNearlyEqual(Data.NewValue, 1.0f);
+    if(IsFrosen())
+    {
+        CustomTimeDilation = 1.0f;
+        Kill();
+    }
+    else
+    {
+        CustomTimeDilation = FMath::Clamp(1.0f - STUUtils::FastGrowth(Data.NewValue, FreezeGrowthCoeff, FreezeSlowdownCoeff), 0.0f, 1.0f);
+        OnFrostChangedBP(1.0f - CustomTimeDilation);
+    }
+}
 
-    CustomTimeDilation = FMath::Clamp(1.0f - Data.NewValue, 0.0f, 1.0f);
-    OnFrostChangedBP(Data.NewValue);
+void ASTUBaseCharacter::Kill()
+{
+    TakeDamage(HealthComponent->GetMaxHealth(), FDamageEvent{}, nullptr, nullptr);
 }
 
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
@@ -247,7 +270,19 @@ TArray<ASTUBaseCharacter*> ASTUBaseCharacter::Freeze()
 
     if (!GetWorld() || HealthComponent->IsDead()) return DamagedActors;
 
-    FVector DestLocation = GetActorLocation() + GetActorForwardVector() * FreezeDistance;
+    if(FreezeAnimMontage)
+    {
+        PlayAnimMontage(FreezeAnimMontage);    
+    }
+
+    FVector FreezeSourceLocation = GetMesh()->GetSocketLocation(FreezeSocketName);
+
+    if(FreezeNiagaraEffect)
+    {        
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(this->GetWorld(), FreezeNiagaraEffect, FreezeSourceLocation, GetActorRotation());
+    }
+    
+    FVector DestLocation = FreezeSourceLocation + GetActorForwardVector() * FreezeDistance;
     
     TArray<AActor*> IgnoreActors;
     IgnoreActors.Add(this);
@@ -256,13 +291,13 @@ TArray<ASTUBaseCharacter*> ASTUBaseCharacter::Freeze()
 
     if(UKismetSystemLibrary::SphereTraceMulti(
         GetWorld(),
-        GetActorLocation(),
+        FreezeSourceLocation,
         DestLocation,
         FreezeIntersectionSphereRadius,
         UEngineTypes::ConvertToTraceType(ECC_Camera),
         false,
         IgnoreActors,
-        EDrawDebugTrace::ForDuration,
+        EDrawDebugTrace::None,
         HitResults,
         true))
     {
@@ -315,8 +350,8 @@ bool ASTUBaseCharacter::TryDash(TArray<ASTUBaseCharacter*>& DamagedActors)
             {
                 if(Actor == this) continue;
                 
-                DrawDebugLine(GetWorld(), MyLocation, DestLocation, FColor::Red, false, 5.0f, 0, 3.0f);
-                DrawDebugSphere(GetWorld(), Actor->GetActorLocation(), DashIntersectionSphereRadius, 16, FColor::Red, false, 5);
+                //DrawDebugLine(GetWorld(), MyLocation, DestLocation, FColor::Red, false, 5.0f, 0, 3.0f);
+                //DrawDebugSphere(GetWorld(), Actor->GetActorLocation(), DashIntersectionSphereRadius, 16, FColor::Red, false, 5);
                 
                 auto Intersection = IntersectionUtil::LineSphereIntersection<float>(MyLocation, DashDirection, Actor->GetActorLocation(), DashIntersectionSphereRadius);
                 
@@ -402,4 +437,9 @@ float ASTUBaseCharacter::GetHealth() const
 bool ASTUBaseCharacter::IsStuned() const
 {
     return AttributeSet && !FMath::IsNearlyZero(AttributeSet->GetIsStunt());
+}
+
+bool ASTUBaseCharacter::IsFrosen() const
+{
+    return AttributeSet && FMath::IsNearlyEqual(AttributeSet->GetFrost(), 1.0f);
 }

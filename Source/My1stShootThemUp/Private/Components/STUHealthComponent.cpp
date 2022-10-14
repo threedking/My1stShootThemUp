@@ -47,7 +47,12 @@ void USTUHealthComponent::BeginPlay()
 
 float USTUHealthComponent::GetHealth() const
 {
-    return this->Health;
+    return Health;
+}
+
+float USTUHealthComponent::GetMaxHealth() const
+{
+    return MaxHealth;
 }
 
 bool USTUHealthComponent::IsDead() const

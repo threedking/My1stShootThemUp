@@ -33,6 +33,8 @@ public:
 
 	ASTUBaseWeapon* USTUWeaponComponent::GetCurrentWeapon();
 
+	void DropAllWeapons(int LifeTime);
+
 protected:
 	virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type ENdPlayReason) override;

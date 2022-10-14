@@ -41,7 +41,7 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const struct FGameplayEff
 
     if (Data.EvaluatedData.Attribute == GetFrostAttribute())
     {
-        SetFrost(FMath::Clamp(GetFrost(), 0.0f, 2.0f));
+        SetFrost(FMath::Clamp(GetFrost(), 0.0f, 1.0f));
     }
 }
 
